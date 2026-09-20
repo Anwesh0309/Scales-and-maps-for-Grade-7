@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { AUDIO_MAP } from '../src/utils/audioMap.js';
 import { STATIONS } from '../src/content/stations.js';
-import { WORLDS } from '../src/content/worlds.js';
 import { getWorldQuestions } from '../src/core/questions/questionBank.js';
 import { INITIAL_STATE, progressReducer } from '../src/core/progress.js';
 
@@ -53,7 +52,7 @@ for (let w = 1; w <= 10; w++) {
   for (let i = 0; i < qs.length; i++) {
     totalQ++;
     const q = qs[i];
-    if (!q.text || !q.options || q.options.length !== 4) {
+    if (!q.stem || !q.options || q.options.length !== 4) {
       errors.push(`World ${w} Q${i + 1} does not have 4 options`);
     }
     const correctOpts = q.options.filter(o => o.correct);

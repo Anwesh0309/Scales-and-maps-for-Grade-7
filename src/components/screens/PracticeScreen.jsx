@@ -490,36 +490,6 @@ function WorldGameplay({
             >
               {activeQuestion.stem}
             </div>
-
-            {/* Replay Audio Narration Button */}
-            <button
-              type="button"
-              onClick={() => {
-                stopAudio();
-                const qKey = `w${currentWorld}q${currentQIndex + 1}`;
-                playAudioKey(qKey);
-              }}
-              style={{
-                background: 'rgba(56, 189, 248, 0.18)',
-                border: '1.5px solid #38bdf8',
-                borderRadius: '20px',
-                padding: '4px 16px',
-                color: '#bae6fd',
-                fontFamily: 'Fredoka, sans-serif',
-                fontSize: '15px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginTop: '10px',
-                transition: 'all 0.15s'
-              }}
-              title="Replay Question Audio"
-            >
-              <span>🔊</span>
-              <span>Listen</span>
-            </button>
           </div>
 
           {/* 4 Answer Options (2 × 2 Grid with extra large text for Grade 3) */}
