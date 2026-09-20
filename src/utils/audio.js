@@ -2,6 +2,20 @@ import { AUDIO_MAP } from './audioMap.js';
 
 let currentAudio = null;
 let currentPlaybackId = 0;
+let isAudioEnabled = true;
+
+/**
+ * Updates the global audio enabled flag.
+ * When disabled (muted), any playing audio is stopped immediately.
+ */
+export const setAudioEnabled = (enabled) => {
+  isAudioEnabled = Boolean(enabled);
+  if (!isAudioEnabled) {
+    stopAudio();
+  }
+};
+
+export const getAudioEnabled = () => isAudioEnabled;
 
 /**
  * Stops any currently playing audio immediately and invalidates any queued sequences.
@@ -25,11 +39,16 @@ export const stopAudio = () => {
 /**
  * Plays a single audio clip by key.
  * Automatically stops any previously playing audio to prevent overlap.
+ * Silently does nothing if audio is muted.
  */
 export const playAudioKey = (key, onEnd = null) => {
   stopAudio();
-  const playbackId = currentPlaybackId;
+  if (!isAudioEnabled) {
+    if (onEnd) onEnd();
+    return;
+  }
 
+  const playbackId = currentPlaybackId;
   const url = AUDIO_MAP[key];
   if (!url) {
     if (onEnd) onEnd();
@@ -53,8 +72,9 @@ export const playAudioKey = (key, onEnd = null) => {
     };
 
     audio.play().catch(() => {
-      // Autoplay blocked by browser or interrupted by rapid navigation
+      // Autoplay blocked by browser or interrupted
       if (currentPlaybackId !== playbackId) return;
+      currentAudio = null;
       if (onEnd) onEnd();
     });
   } catch {
@@ -64,14 +84,16 @@ export const playAudioKey = (key, onEnd = null) => {
 
 /**
  * Plays a sequence of audio clips one after another without overlap.
- * Automatically aborts if stopAudio() is called (e.g. user navigates away).
+ * Automatically aborts if stopAudio() is called (e.g. user navigates away or mutes).
  */
 export const playAudioSequence = async (keys, shouldContinue = () => true) => {
   stopAudio();
+  if (!isAudioEnabled) return;
+
   const sequenceId = currentPlaybackId;
 
   for (const key of keys) {
-    if (currentPlaybackId !== sequenceId || !shouldContinue()) {
+    if (currentPlaybackId !== sequenceId || !isAudioEnabled || !shouldContinue()) {
       return;
     }
 
@@ -79,7 +101,7 @@ export const playAudioSequence = async (keys, shouldContinue = () => true) => {
     if (!url) continue;
 
     await new Promise((resolve) => {
-      if (currentPlaybackId !== sequenceId || !shouldContinue()) {
+      if (currentPlaybackId !== sequenceId || !isAudioEnabled || !shouldContinue()) {
         resolve();
         return;
       }

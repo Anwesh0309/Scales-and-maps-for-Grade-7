@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-export default function FeedbackOverlay({ isCorrect, explanation, onContinue, duration = 1000 }) {
+export default function FeedbackOverlay({ isCorrect, explanation, onContinue, duration = 1800 }) {
   useEffect(() => {
     if (!onContinue) return;
     const timer = setTimeout(() => {
@@ -119,7 +119,7 @@ export default function FeedbackOverlay({ isCorrect, explanation, onContinue, du
             gap: '8px'
           }}
         >
-          <span>{isCorrect ? 'Correct!' : 'Not quite!'}</span>
+          <span>{isCorrect ? "That's Correct!" : "Not Quite!"}</span>
           {isCorrect && <span style={{ fontSize: '24px' }}>🎉</span>}
         </h2>
 

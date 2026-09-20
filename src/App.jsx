@@ -1,6 +1,6 @@
 import React, { useReducer, useEffect } from 'react';
 import { INITIAL_STATE, progressReducer, loadSavedProgress, saveProgress } from './core/progress';
-import { playAudioKey, playAudioSequence, stopAudio } from './utils/audio';
+import { playAudioKey, playAudioSequence, stopAudio, setAudioEnabled } from './utils/audio';
 
 import TopBar from './components/shared/TopBar';
 import FloatingBg from './components/shared/FloatingBg';
@@ -20,8 +20,18 @@ export default function App() {
     saveProgress(state);
   }, [state]);
 
-  // Audio narration synchronization
+  // Keep audio module's global enabled flag synchronized
   useEffect(() => {
+    setAudioEnabled(state.audioEnabled);
+  }, [state.audioEnabled]);
+
+  // Audio narration synchronization for Wonder, Story, and Reflect
+  useEffect(() => {
+    if (state.phase === 'simulate' || state.phase === 'play') {
+      // Simulate and Practice screens synchronize their own active problem / question narration
+      return;
+    }
+
     stopAudio();
 
     if (!state.audioEnabled) {
@@ -43,7 +53,7 @@ export default function App() {
     return () => {
       stopAudio();
     };
-  }, [state.phase, state.storyIndex, state.simulate.currentStation, state.audioEnabled]);
+  }, [state.phase, state.storyIndex, state.audioEnabled]);
 
   // Phase navigation handlers
   const handleGoPhase = (phase) => {
@@ -127,6 +137,8 @@ export default function App() {
   };
 
   const handleToggleAudio = () => {
+    const next = !state.audioEnabled;
+    setAudioEnabled(next);
     dispatch({ type: 'TOGGLE_AUDIO' });
   };
 
@@ -184,6 +196,7 @@ export default function App() {
         {state.phase === 'simulate' && (
           <SimulateScreen
             simulateState={state.simulate}
+            audioEnabled={state.audioEnabled}
             onSelectStation={handleSelectStation}
             onSolveProblem={handleSolveStationProblem}
             onCompleteSimulate={handleCompleteSimulate}
@@ -193,6 +206,7 @@ export default function App() {
         {state.phase === 'play' && (
           <PracticeScreen
             playState={state.play}
+            audioEnabled={state.audioEnabled}
             onStartWorld={handleStartWorld}
             onExitWorld={handleExitWorld}
             onAnswerQuestion={handleAnswerQuestion}
@@ -205,6 +219,7 @@ export default function App() {
           <ReflectScreen
             reflectState={state.reflect}
             playState={state.play}
+            audioEnabled={state.audioEnabled}
             onSetReflection={handleSetReflection}
             onSubmitReflection={handleSubmitReflection}
           />

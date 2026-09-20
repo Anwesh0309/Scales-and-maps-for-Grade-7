@@ -9,6 +9,7 @@ import { StationFloorPlanVisual } from '../sim/StationFloorPlan';
 
 export default function SimulateScreen({
   simulateState,
+  audioEnabled,
   onSelectStation,
   onSolveProblem,
   onCompleteSimulate
@@ -36,18 +37,18 @@ export default function SimulateScreen({
     setIsSolvedLocally(false);
   }
 
-  // Audio synchronization on problem change
+  // Audio synchronization on problem change or audio unmuting
   const currentProblemId = currentProblem?.id;
   useEffect(() => {
     stopAudio();
-    if (currentProblemId) {
+    if (audioEnabled && currentProblemId) {
       playAudioKey(`${currentProblemId}_task`);
     }
 
     return () => {
       stopAudio();
     };
-  }, [currentProblemId]);
+  }, [currentProblemId, audioEnabled]);
 
   const isAlreadyDone = (stationProgress.currentProblem || 0) > currentProblemIndex;
   const isCurrentProblemSolved = isAlreadyDone || isSolvedLocally;
@@ -74,7 +75,9 @@ export default function SimulateScreen({
     }
 
     if (isMatch) {
-      playAudioKey('correct_praise');
+      if (audioEnabled) {
+        playAudioKey('correct_praise');
+      }
       const correctStr = currentProblem.unit === 'n'
         ? `1 : ${currentProblem.expected.toLocaleString()} (n = ${currentProblem.expected.toLocaleString()})`
         : `${currentProblem.expected} ${currentProblem.unit}`;
@@ -84,7 +87,9 @@ export default function SimulateScreen({
       });
       setIsSolvedLocally(true);
     } else {
-      playAudioKey('try_again_praise');
+      if (audioEnabled) {
+        playAudioKey('try_again_praise');
+      }
       const nextAttempt = attemptCount + 1;
       setAttemptCount(nextAttempt);
 

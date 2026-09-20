@@ -224,6 +224,8 @@ async function main() {
   }
 
   // 6. Praise & Feedback Audio
+  await generateClip('correct_praise', "That's Correct", force);
+  await generateClip('try_again_praise', "Not Quite", force);
   audioMap['correct_praise'] = '/assets/audio/correct_praise.mp3';
   audioMap['try_again_praise'] = '/assets/audio/try_again_praise.mp3';
   audioMap['reflect_prompt'] = '/assets/audio/reflect_prompt.mp3';

@@ -15,6 +15,7 @@ export default function PracticeScreen(props) {
 
 function WorldGameplay({
   playState,
+  audioEnabled,
   onStartWorld,
   onExitWorld,
   onAnswerQuestion,
@@ -35,10 +36,10 @@ function WorldGameplay({
   const questions = currentWorld ? getWorldQuestions(currentWorld) : [];
   const activeQuestion = questions[currentQIndex] || questions[0];
 
-  // Clean up timer and audio on unmount or question change
+  // Clean up timer and audio on unmount, question change, or audio toggle
   useEffect(() => {
     stopAudio();
-    if (activeQuestion) {
+    if (audioEnabled && activeQuestion && !feedback && !worldSummary && !outOfHearts) {
       const qKey = `w${currentWorld}q${currentQIndex + 1}`;
       playAudioKey(qKey);
     }
@@ -48,9 +49,11 @@ function WorldGameplay({
         clearTimeout(feedbackTimerRef.current);
       }
     };
-  }, [currentWorld, currentQIndex, activeQuestion]);
+  }, [currentWorld, currentQIndex, activeQuestion, audioEnabled]);
 
   const advanceQuestion = (updatedHearts, updatedCorrectCount) => {
+    // Crucial: stop praise audio so it does not bleed into next question narration!
+    stopAudio();
     if (feedbackTimerRef.current) {
       clearTimeout(feedbackTimerRef.current);
       feedbackTimerRef.current = null;
@@ -109,7 +112,12 @@ function WorldGameplay({
 
     const updatedHearts = isCorrect ? hearts : Math.max(0, hearts - 1);
     onAnswerQuestion(isCorrect, xpGain);
-    playAudioKey(isCorrect ? 'correct_praise' : 'try_again_praise');
+
+    // Stop current question narration immediately before playing praise
+    stopAudio();
+    if (audioEnabled) {
+      playAudioKey(isCorrect ? 'correct_praise' : 'try_again_praise');
+    }
 
     const explanationText = isCorrect
       ? activeQuestion.explanation
@@ -124,19 +132,24 @@ function WorldGameplay({
       updatedCorrectCount
     });
 
-    // Automatically switch to next question after 1 second (1000ms)
+    // Advance to next question after praise finishes (~1800ms)
+    if (feedbackTimerRef.current) {
+      clearTimeout(feedbackTimerRef.current);
+    }
     feedbackTimerRef.current = setTimeout(() => {
       advanceQuestion(updatedHearts, updatedCorrectCount);
-    }, 1000);
+    }, 1800);
   };
 
   const handleFeedbackContinue = () => {
+    stopAudio();
     if (feedback) {
       advanceQuestion(feedback.updatedHearts, feedback.updatedCorrectCount);
     }
   };
 
   const handleRetryWorld = () => {
+    stopAudio();
     if (feedbackTimerRef.current) {
       clearTimeout(feedbackTimerRef.current);
       feedbackTimerRef.current = null;
@@ -603,13 +616,13 @@ function WorldGameplay({
             })}
           </div>
 
-          {/* Feedback Overlay Modal (exact screenshot match, auto-switches in 1 sec) */}
+          {/* Feedback Overlay Modal (auto-advances after praise narration finishes or when clicked) */}
           {feedback && (
             <FeedbackOverlay
               isCorrect={feedback.isCorrect}
               explanation={feedback.explanation}
               onContinue={handleFeedbackContinue}
-              duration={1000}
+              duration={1800}
             />
           )}
 

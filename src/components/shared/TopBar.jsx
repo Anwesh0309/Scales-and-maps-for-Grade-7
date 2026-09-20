@@ -151,8 +151,10 @@ export default function TopBar({ phase, completed, onGoPhase, audioEnabled, onTo
 
         {/* Audio Sound / Muted Toggle Pill Inside Stepper Bar */}
         <button
+          id="btn-toggle-audio"
           type="button"
           onClick={onToggleAudio}
+          aria-label={audioEnabled ? 'Mute narration' : 'Enable sound'}
           style={{
             background: audioEnabled ? 'rgba(139, 92, 246, 0.25)' : 'rgba(239, 68, 68, 0.25)',
             border: `1.8px solid ${audioEnabled ? 'rgba(167, 139, 250, 0.55)' : 'rgba(248, 113, 113, 0.55)'}`,
@@ -166,7 +168,8 @@ export default function TopBar({ phase, completed, onGoPhase, audioEnabled, onTo
             alignItems: 'center',
             gap: '7px',
             cursor: 'pointer',
-            marginLeft: '6px'
+            marginLeft: '6px',
+            userSelect: 'none'
           }}
           title={audioEnabled ? 'Mute narration' : 'Enable sound'}
         >
