@@ -28,6 +28,7 @@ function WorldGameplay({
   const [correctCount, setCorrectCount] = useState(0);
   const [outOfHearts, setOutOfHearts] = useState(false);
   const [worldSummary, setWorldSummary] = useState(null);
+  const [showHint, setShowHint] = useState(false);
   const feedbackTimerRef = useRef(null);
 
   // If in a world, get the 10 questions for that world
@@ -56,6 +57,7 @@ function WorldGameplay({
     }
     setFeedback(null);
     setSelectedOption(null);
+    setShowHint(false);
 
     // 1. Check if user lost all 3 hearts
     if (updatedHearts <= 0) {
@@ -143,6 +145,7 @@ function WorldGameplay({
     setWorldSummary(null);
     setFeedback(null);
     setSelectedOption(null);
+    setShowHint(false);
     setCurrentQIndex(0);
     setCorrectCount(0);
     onStartWorld(currentWorld);
@@ -157,9 +160,14 @@ function WorldGameplay({
     setWorldSummary(null);
     setFeedback(null);
     setSelectedOption(null);
+    setShowHint(false);
     setCurrentQIndex(0);
     setCorrectCount(0);
     onExitWorld();
+  };
+
+  const handleHint = () => {
+    setShowHint((prev) => !prev);
   };
 
   const worldMeta = WORLDS.find((w) => w.id === currentWorld) || WORLDS[0];
@@ -432,11 +440,11 @@ function WorldGameplay({
               <button
                 type="button"
                 onClick={handleHint}
-                title="Get a hint"
+                title={showHint ? "Hide hint" : "Show hint"}
                 style={{
                   marginLeft: '10px',
-                  background: 'rgba(0, 0, 0, 0.18)',
-                  border: 'none',
+                  background: showHint ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.18)',
+                  border: showHint ? '1.5px solid #1e1b4b' : 'none',
                   borderRadius: '50px',
                   padding: '4px 12px',
                   color: '#1e1b4b',
@@ -446,11 +454,12 @@ function WorldGameplay({
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '5px'
+                  gap: '5px',
+                  transition: 'all 0.15s'
                 }}
               >
                 <span>💡</span>
-                <span>Hint</span>
+                <span>{showHint ? 'Hide Hint' : 'Hint'}</span>
               </button>
             )}
           </div>
@@ -490,6 +499,29 @@ function WorldGameplay({
             >
               {activeQuestion.stem}
             </div>
+
+            {/* Inline Hint Card when toggled */}
+            {showHint && activeQuestion.hint && (
+              <div
+                style={{
+                  marginTop: '12px',
+                  background: 'rgba(250, 204, 21, 0.18)',
+                  border: '1.5px solid #facc15',
+                  borderRadius: '16px',
+                  padding: '10px 18px',
+                  color: '#fef08a',
+                  fontFamily: 'Nunito, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 800,
+                  textAlign: 'center',
+                  maxWidth: '860px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                  lineHeight: 1.4
+                }}
+              >
+                💡 <strong>Hint:</strong> {activeQuestion.hint}
+              </div>
+            )}
           </div>
 
           {/* 4 Answer Options (2 × 2 Grid with extra large text for Grade 3) */}
