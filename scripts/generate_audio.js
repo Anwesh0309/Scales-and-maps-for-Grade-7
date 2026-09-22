@@ -5,7 +5,7 @@ import { getWorldQuestions } from '../src/core/questions/questionBank.js';
 import { WONDER } from '../src/content/wonder.js';
 import { STORY } from '../src/content/story.js';
 
-const API_KEY = 'sk_0af55b573c54fe31387443150c45624fed865ccc914cd486';
+const API_KEY = 'sk_1477a0b0a31e89b834b1e17ca4468c02a6e8bf554f621c5a';
 const VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice
 const MODEL_ID = 'eleven_multilingual_v2';
 
@@ -18,8 +18,13 @@ if (!fs.existsSync(AUDIO_DIR)) {
 function cleanSpeechText(text) {
   if (!text) return '';
   return text
-    // Replace spaced numbers like '25 000' or '100 000' with '25,000' or '100,000'
+    // Strip emojis & special decorative symbols
+    .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|✦|💡|🎯|✨|🎉|⭐|🔥|🔓|🧭|🪜|🌊|📐/gu, '')
+    // Replace spaced numbers like '25 000' or '100 000' or '1 000 000' with comma separation
+    .replace(/(\d+)\s+(\d{3})\s+(\d{3})\b/g, '$1,$2,$3')
     .replace(/(\d+)\s+(\d{3})\b/g, '$1,$2')
+    // Percentages
+    .replace(/(\d+)%/g, '$1 percent')
     // Area & Volume units with values first (e.g. 12 cm², 7.5 km²)
     .replace(/(\d+(\.\d+)?)\s*km²/gi, '$1 square kilometres')
     .replace(/(\d+(\.\d+)?)\s*cm²/gi, '$1 square centimetres')
@@ -32,12 +37,16 @@ function cleanSpeechText(text) {
     .replace(/\bsq\.?\s*km\b/gi, 'square kilometres')
     .replace(/\bsq\.?\s*cm\b/gi, 'square centimetres')
     .replace(/\bsq\.?\s*m\b/gi, 'square metres')
-    // Handle ratio formats like 1 : 50,000 or 1 cm : 500 m
+    // Powers / Math expressions
+    .replace(/\bn²/gi, 'n squared')
+    .replace(/\bk²/gi, 'k squared')
+    .replace(/\bk³/gi, 'k cubed')
+    // Handle ratio formats like 1 : 50,000 or 1 cm : 500 m or 5 : 1 or 200 : 1
     .replace(/1\s*:\s*n\b/gi, 'one to n')
     .replace(/\b(\d+)\s*cm\s*:\s*(\d+)\s*km\b/gi, '$1 centimetre to $2 kilometres')
     .replace(/\b(\d+)\s*cm\s*:\s*(\d+)\s*m\b/gi, '$1 centimetre to $2 metres')
-    .replace(/1\s*:\s*(\d[\d,]*)/g, '1 to $1')
-    .replace(/(\d[\d,]*)\s*:\s*1\b/g, '$1 to 1')
+    .replace(/(\d[\d,]*)\s*:\s*(\d[\d,]*)/g, '$1 to $2')
+    .replace(/1\s*\/\s*(\d[\d,]*)/g, '1 divided by $1')
     // Common scale terminology
     .replace(/\bRF\b/g, 'representative fraction')
     .replace(/\bha\b/gi, 'hectares')
@@ -58,8 +67,6 @@ function cleanSpeechText(text) {
     .replace(/\bMETRES\b/g, 'metres')
     .replace(/\bMILLIMETRES\b/g, 'millimetres')
     // Math symbols
-    .replace(/k²/gi, 'k squared')
-    .replace(/k³/gi, 'k cubed')
     .replace(/÷/g, ' divided by ')
     .replace(/×/g, ' times ')
     .replace(/\b\/\b/g, ' divided by ')
@@ -116,12 +123,10 @@ async function fetchGoogleTTSChunk(chunk) {
 }
 
 async function fetchGoogleTTS(text) {
-  // Google TTS chunk limit is ~180 chars. Split text by sentence or clauses if needed.
   if (text.length <= 160) {
     return await fetchGoogleTTSChunk(text);
   }
 
-  // Split into sentences
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
   const buffers = [];
   for (const s of sentences) {
@@ -143,7 +148,7 @@ async function generateClip(key, rawText, force = false) {
   }
 
   const spokenText = cleanSpeechText(rawText);
-  console.log(`Generating audio for [${key}]: "${spokenText.slice(0, 45)}..."`);
+  console.log(`Generating audio for [${key}]: "${spokenText.slice(0, 50)}..."`);
 
   // 1. Try ElevenLabs first
   let buffer = await fetchElevenLabs(spokenText);
@@ -191,7 +196,7 @@ async function main() {
     audioMap[qKey] = `/assets/audio/${qKey}.mp3`;
   }
 
-  // 4. Simulation Phase Guide Audio (4 Stations, 12 Problems)
+  // 4. Simulation Phase Guide & Task Audio (4 Stations, 12 Problems)
   for (const station of STATIONS) {
     const introKey = `station_${station.id}_intro`;
     await generateClip(introKey, station.intro, force);
@@ -210,8 +215,8 @@ async function main() {
     }
   }
 
-  // 5. Practice Phase Questions (10 Worlds x 10 Questions = 100 Questions)
-  console.log('Generating Practice Phase questions (10 worlds)...');
+  // 5. Practice Phase Questions & Hints (10 Worlds x 10 Questions = 100 Questions + 100 Hints)
+  console.log('Generating Practice Phase questions and hints (10 worlds)...');
   for (let w = 1; w <= 10; w++) {
     const questions = getWorldQuestions(w);
     for (let qIdx = 0; qIdx < questions.length; qIdx++) {
@@ -219,6 +224,13 @@ async function main() {
       const qKey = `w${w}q${qIdx + 1}`;
       await generateClip(qKey, q.stem, force);
       audioMap[qKey] = `/assets/audio/${qKey}.mp3`;
+
+      if (q.hint) {
+        const hintKey = `w${w}q${qIdx + 1}_hint`;
+        await generateClip(hintKey, q.hint, force);
+        audioMap[hintKey] = `/assets/audio/${hintKey}.mp3`;
+      }
+
       if (force) await new Promise(r => setTimeout(r, 120)); // Gentle throttle
     }
   }
@@ -226,6 +238,7 @@ async function main() {
   // 6. Praise & Feedback Audio
   await generateClip('correct_praise', "That's Correct", force);
   await generateClip('try_again_praise', "Not Quite", force);
+  await generateClip('reflect_prompt', "Reflect on what you have learned about scale factors and map reading.", force);
   audioMap['correct_praise'] = '/assets/audio/correct_praise.mp3';
   audioMap['try_again_praise'] = '/assets/audio/try_again_praise.mp3';
   audioMap['reflect_prompt'] = '/assets/audio/reflect_prompt.mp3';
@@ -240,3 +253,4 @@ export const AUDIO_MAP = ${JSON.stringify(audioMap, null, 2)};
 }
 
 main().catch(console.error);
+

@@ -351,7 +351,7 @@ export default function SimulateScreen({
               padding: '12px 18px',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              gap: '10px',
               height: '100%',
               boxSizing: 'border-box',
               overflowY: 'auto'
@@ -494,7 +494,14 @@ export default function SimulateScreen({
 
                 <button
                   type="button"
-                  onClick={() => setShowHint(!showHint)}
+                  onClick={() => {
+                    const nextShow = !showHint;
+                    setShowHint(nextShow);
+                    stopAudio();
+                    if (nextShow && audioEnabled && currentProblemId) {
+                      playAudioKey(`${currentProblemId}_guide`);
+                    }
+                  }}
                   style={{
                     background: 'rgba(250, 204, 21, 0.25)',
                     border: '1.5px solid #facc15',
@@ -568,7 +575,7 @@ export default function SimulateScreen({
               }}
             >
               {/* Left: Answer Box & Feedback */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '165px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '220px', maxWidth: '280px', flex: '1 1 auto' }}>
                 <span
                   style={{
                     fontFamily: 'Nunito, sans-serif',

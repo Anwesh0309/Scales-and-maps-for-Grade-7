@@ -130,7 +130,8 @@ export function StationMapVisual({ problem }) {
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        overflow: 'hidden'
+        gap: '6px',
+        overflowY: 'auto'
       }}
     >
       {/* Top Header Controls - Workable across the whole area */}
@@ -337,8 +338,8 @@ export function StationMapVisual({ problem }) {
       <div
         style={{
           position: 'relative',
-          flex: 1,
-          minHeight: '210px',
+          flex: '1 0 230px',
+          minHeight: '230px',
           overflow: 'hidden',
           borderRadius: '16px',
           border: '2px solid rgba(56, 189, 248, 0.45)',

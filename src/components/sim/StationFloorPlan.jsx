@@ -24,9 +24,10 @@ export function StationFloorPlanVisual({ problem }) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        gap: '6px',
         padding: '6px 12px',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        overflowY: 'auto'
       }}
     >
       {/* Header Bar */}
@@ -183,8 +184,8 @@ export function StationFloorPlanVisual({ problem }) {
       <div
         style={{
           position: 'relative',
-          flex: 1,
-          minHeight: '210px',
+          flex: '1 0 230px',
+          minHeight: '230px',
           overflow: 'hidden',
           borderRadius: '16px',
           border: '2px solid rgba(56, 189, 248, 0.45)',

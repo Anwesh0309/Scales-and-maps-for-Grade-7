@@ -40,9 +40,10 @@ export function StationUnitLadderVisual({ problem }) {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        gap: '6px',
         padding: '6px 12px',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        overflowY: 'auto'
       }}
     >
       {/* Header Bar */}
@@ -91,7 +92,7 @@ export function StationUnitLadderVisual({ problem }) {
       </div>
 
       {/* Main Two-Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: '12px', flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: '12px', flex: '1 0 auto', minHeight: '230px' }}>
         {/* Left Column: Interactive Metric Unit Ladder */}
         <div
           style={{

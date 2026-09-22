@@ -180,7 +180,15 @@ function WorldGameplay({
   };
 
   const handleHint = () => {
-    setShowHint((prev) => !prev);
+    setShowHint((prev) => {
+      const nextShow = !prev;
+      stopAudio();
+      if (nextShow && audioEnabled && activeQuestion?.hint) {
+        const hintKey = `w${currentWorld}q${currentQIndex + 1}_hint`;
+        playAudioKey(hintKey);
+      }
+      return nextShow;
+    });
   };
 
   const worldMeta = WORLDS.find((w) => w.id === currentWorld) || WORLDS[0];
